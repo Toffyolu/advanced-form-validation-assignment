@@ -60,4 +60,15 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+
+  switchButton: {
+    alignItems: 'center',
+    marginTop: 18,
+  },
+
+  switchText: {
+    color: '#333',
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });

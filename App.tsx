@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
 } from 'react-native';
+import { useState } from 'react';
 
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -34,7 +35,30 @@ const signUpSchema = z
 
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
+const signInSchema = z.object({
+  email: z.email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters'),
+});
+
+type SignInFormData = z.infer<typeof signInSchema>;
+
 export default function App() {
+  const [isSignIn, setIsSignIn] = useState(false);
+
+  if (isSignIn) {
+    return <SignInScreen onSwitchToSignUp={() => setIsSignIn(false)} />;
+  }
+
+  return <SignUpScreen onSwitchToSignIn={() => setIsSignIn(true)} />;
+}
+
+function SignUpScreen({
+  onSwitchToSignIn,
+}: {
+  onSwitchToSignIn: () => void;
+}) {
   const {
     control,
     handleSubmit,
@@ -175,10 +199,115 @@ export default function App() {
           styles.button,
           !isValid && styles.buttonDisabled,
         ]}
-       onPress={() => handleSubmit(onSubmit)()}
+        onPress={() => handleSubmit(onSubmit)()}
         disabled={!isValid}
       >
         <Text style={styles.buttonText}>Sign Up</Text>
+      </Pressable>
+
+      <Pressable
+        style={styles.switchButton}
+        onPress={onSwitchToSignIn}
+      >
+        <Text style={styles.switchText}>
+          Already have an account? Sign In
+        </Text>
+      </Pressable>
+
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+
+function SignInScreen({
+  onSwitchToSignUp,
+}: {
+  onSwitchToSignUp: () => void;
+}) {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+    mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = (data: SignInFormData) => {
+    console.log('Sign-In Data:', data);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome Back</Text>
+
+      <Controller
+        control={control}
+        name="email"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+
+            <TextInput
+              style={[styles.input, errors.email && styles.inputError]}
+              placeholder="Enter your email"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email.message}</Text>
+            )}
+          </View>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Password</Text>
+
+            <TextInput
+              style={[styles.input, errors.password && styles.inputError]}
+              placeholder="Enter your password"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              secureTextEntry
+              autoComplete="password"
+            />
+
+            {errors.password && (
+              <Text style={styles.errorText}>
+                {errors.password.message}
+              </Text>
+            )}
+          </View>
+        )}
+      />
+
+      <Pressable
+        style={[styles.button, !isValid && styles.buttonDisabled]}
+        onPress={() => handleSubmit(onSubmit)()}
+        disabled={!isValid}
+      >
+        <Text style={styles.buttonText}>Sign In</Text>
+      </Pressable>
+
+      <Pressable style={styles.switchButton} onPress={onSwitchToSignUp}>
+        <Text style={styles.switchText}>
+          Need an account? Sign Up
+        </Text>
       </Pressable>
 
       <StatusBar style="auto" />
